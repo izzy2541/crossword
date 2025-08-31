@@ -8,28 +8,28 @@ const down = [
     "Learner _________________ is the recognition that students learn in different ways, and these differences are normal and expected.",
     3,
     1,
-    "Hint for one down",
+    "Begins with the letter V and describes natural differences in how people learn.",
   ],
   [
     "expression",
     "Multiple means of action and _________________ is offering learners different ways to demonstrate what they know.",
     6,
     1,
-    "Hint for two down",
+    "Begins with the letter E and is a way of showing or communicating an idea.",
   ],
   [
     "engagement",
     "Multiple means of _________________ is using diverse methods to motivate and engage learners based on interests, effort, and self-regulation.",
     8,
     1,
-    "Hint for three down",
+    "This is active involvement in learning,  when learners are participating fully.",
   ],
   [
     "flexible",
     "_________________ learning environments are spaces and approaches that adapt to learners’ needs, preferences, and choices.",
     11,
     1,
-    "Hint for four down",
+    "Able to shift when circumstances or needs change. The opposite of rigid.",
   ],
   [],
   [
@@ -37,7 +37,7 @@ const down = [
     "Initials for the globally recognised guidelines for website content accessibility. _________________",
     1,
     8,
-    "Hint for six down",
+    "Initials for the rules that ensure digital content is usable by everyone.  The first letter is W",
   ],
 ];
 
@@ -51,7 +51,7 @@ const across = [
     "_________________ design for learning is a framework that guides the design of inclusive learning environments to accommodate all learners' diverse needs.",
     1,
     4,
-    "Hint for five across",
+    "This word also means ‘meant for everyone’, not just a few.",
   ],
   [],
   [
@@ -59,14 +59,14 @@ const across = [
     "The wide range of differences among learners in terms of abilities, backgrounds, learning styles, languages, cultures, interests, and needs. _________________",
     5,
     8,
-    "Hint for seven across",
+    "Not all the same, made up of many differences or variations.",
   ],
   [
     "alternative",
     "A different format or method of presenting information that serves the same purpose as the original, such as providing a text description for an image or captions for audio. _________________",
     1,
     10,
-    "Hint for eight across",
+    "Another option or choice.",
   ],
 ];
 

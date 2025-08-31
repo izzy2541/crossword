@@ -85,7 +85,8 @@ input[data-clue]:before {
   color: black;
 }
 
-ul {
+.across_clues,
+.down_clues {
   align-self: flex-start;
   list-style: none;
   padding: 0 30px;
@@ -93,7 +94,7 @@ ul {
   padding-left: 50px;
 }
 
-li[data-clue] {
+div[data-clue] {
   padding: 3px 10px;
   padding-left: 0px;
   cursor: pointer;
@@ -101,13 +102,13 @@ li[data-clue] {
   justify-content: space-between;
 }
 
-li.heading {
+div.heading {
   font-weight: bold;
   font-size: 1.5em;
 }
 
 input.highlight,
-li.current {
+div.current {
   background-color: #ffd;
 }
 
@@ -151,6 +152,12 @@ padding-right: 10px;
   flex-direction: column;
   line-height: 1.4;
   font-size: 1.1em;
+  padding: 1em;
+}
+
+#clues p{
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 
 #checkAnswer {
@@ -242,13 +249,23 @@ input:not([data-clue]) {
   padding-left: 5em;
   padding-right: 0px;
 }
-
-li[data-clue] {
+div[data-clue] {
   padding-left: 20px;
   /* space from left */
   text-indent: -20px;
   /* pulls first line back */
 }
+
+.hint-button.disabled{
+  display: none;
+}
+
+.clue_text,
+.list_and_clue{
+  display: flex;
+  align-items: center;
+}
+
 
 
 #cw_container {
@@ -362,7 +379,8 @@ li[data-clue] {
     font-size: 1em;
   }
 
-  ul {
+.across_clues,
+.down_clues  {
     padding-left: 30px;
   }
 }
@@ -386,16 +404,17 @@ li[data-clue] {
     margin: 0px;
   }
 
-  ul {
+ .across_clues,
+.down_clues  {
     padding-left: 0px;
   }
 
-  ul:first-of-type {
+  .down_clues {
     margin-top: 20px;
     /* order: 2; */
   }
 
-  ul:nth-of-type(2) {
+   .across_clues {
     margin-top: 0px;
   }
 

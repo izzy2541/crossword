@@ -86,15 +86,18 @@ const cluesDiv = document.getElementById("clues");
 const hintsDiv = document.getElementById("hints");
 
 // Create the Across and Down parent divs - written as unordered lists.
-const acrossUl = document.createElement("ul");
-const downUl = document.createElement("ul");
+const acrossUl = document.createElement("div");
+const downUl = document.createElement("div");
+
+acrossUl.className = "across_clues";
+downUl.className = "down_clues";
 
 // Add headings for both sections
-const acrossHeading = document.createElement("li");
+const acrossHeading = document.createElement("div");
 acrossHeading.className = "heading";
 acrossHeading.textContent = "Across";
 
-const downHeading = document.createElement("li");
+const downHeading = document.createElement("div");
 downHeading.className = "heading";
 downHeading.textContent = "Down";
 
@@ -124,6 +127,7 @@ for (let i = 0; i < crossWordWidth; i++) {
   crosswordDiv.appendChild(row); // Append row to the crossword
 }
 
+
 function createCellsAndClues() {
   for (let k = 0; k < answerArray.length; k++) {
     let currentArray = answerArray[k].data; // Get the actual array
@@ -133,74 +137,108 @@ function createCellsAndClues() {
     for (let i = 0; i < currentArray.length; i++) {
       let entry = currentArray[i];
       if (entry.length > 0) {
-        let word = entry[0]; // The answer word
-        let startX = entry[2] - 1; // Convert to zero-based index (column)
-        let startY = entry[3] - 1; // Convert to zero-based index (row)
+        let word = entry[0];
+        let startX = entry[2] - 1;
+        let startY = entry[3] - 1;
 
         for (let j = 0; j < word.length; j++) {
-          //depending on the array, iterate through either columns of rows for the length of the word,
-          //declaring each cell a target cell, to be made input cell in next step.
           let targetCell =
             currentName === "across"
               ? rowsArray[startY][startX + j]
               : rowsArray[startY + j][startX];
 
-          //break at the end of each row
           if (!targetCell) break;
 
-          // Check if the cell already has an input
-          // this prevents overwriting when a cell needs both a down and across class
           let input;
           if (targetCell.tagName === "INPUT") {
-            input = targetCell; // Use existing input
+            input = targetCell;
           } else {
-            //Create input with required attributes to overwrite blank cells written in previous loop.
             input = document.createElement("input");
             input.type = "text";
             input.maxLength = 1;
             targetCell.replaceWith(input);
           }
 
-          //If the index of a letter is 0,
-          // give it a data clue number of the word it belongs tos index within the original down or across array
           if (j === 0) {
             dataClueNumber = i + 1;
             input.setAttribute("data-clue", dataClueNumber);
           }
 
-          // Assign input to the correct grid position
           if (currentName === "across") {
             rowsArray[startY][startX + j] = input;
           } else {
             rowsArray[startY + j][startX] = input;
           }
-          //give unique classname to across cell in order to be able to check correctness
           input.classList.add(`${currentName}_${dataClueNumber}_${j + 1}`);
         }
 
-        // Create clue list item
-        const li = document.createElement("li");
-        li.setAttribute("data-clue", `${i + 1}`);
-        li.setAttribute("data-dir", currentName);
-        li.setAttribute("data-length", word.length);
-        li.classList.add(`${currentName}_${i + 1}`);
+        // === Create wrapper div ===
+        const wrapperDiv = document.createElement("div");
+        wrapperDiv.className = "list_and_clue";
+
+        // === Create clue list item ===
+        const clueAndIcon = document.createElement("div");
+        // const clueSpan = document.createElement("span");
+        clueAndIcon.classList.add("clue_text")
+        clueAndIcon.setAttribute("data-clue", `${i + 1}`);
+        clueAndIcon.setAttribute("data-dir", currentName);
+        clueAndIcon.setAttribute("tabindex", 0);
+        clueAndIcon.setAttribute("data-length", word.length);
+        clueAndIcon.classList.add(`${currentName}_${i + 1}`);
+        clueAndIcon.classList.add("clue");
+        const clueP = document.createElement("p");
+
 
         const clueText = `${i + 1}. ${entry[1]} (${word.length})`;
-        li.setAttribute("data-original-clue", entry[1]); // <- ADD THIS
-        li.innerHTML = `${clueText} <span class="correctness_icon"></span>`;
+        clueAndIcon.setAttribute("data-original-clue", entry[1]);
+        // clueDiv.innerHTML = `${clueText} <span class="correctness_icon"></span>`;
+        clueP.textContent = clueText;
 
-        //If coming from the across array data, add to across <ul>, if not, add to down <ul>
+
+        const correctnessIcon = document.createElement("span");
+        correctnessIcon.classList.add("correctness_icon");
+
+        // === Create hint placeholder + button ===
+        const hintPlaceholder = document.createElement("div");
+        hintPlaceholder.className = "hint_button_placeholder";
+
+        const hintBtn = document.createElement("button");
+        // hintBtn.className = "hint-button disabled";
+        hintBtn.className = "hint-button disabled";
+        //  hintBtn.setAttribute("tabindex", "0");
+        hintBtn.setAttribute("tabindex", "-1");
+        hintBtn.setAttribute("aria-hidden", "true");
+        // hintBtn.disabled = true;
+        // hintBtn.style.display = "none";
+
+        hintBtn.setAttribute("data-clue", `${i + 1}`);
+        hintBtn.setAttribute("data-dir", currentName);
+        hintBtn.classList.add(`${currentName}_${i + 1}`);
+        hintBtn.textContent = "HINT";
+
+
+        hintPlaceholder.appendChild(hintBtn);
+
+        clueAndIcon.appendChild(clueP);
+        clueAndIcon.appendChild(correctnessIcon);
+        clueAndIcon.appendChild(hintBtn);
+
+
+        // Append li and button to wrapper
+        wrapperDiv.appendChild(clueAndIcon);
+
+        // Append wrapper to correct list
         currentName === "across"
-          ? acrossUl.appendChild(li)
-          : downUl.appendChild(li);
+          ? acrossUl.appendChild(wrapperDiv)
+          : downUl.appendChild(wrapperDiv);
       }
     }
   }
   cluesDiv.appendChild(downUl);
   cluesDiv.appendChild(acrossUl);
-}
 
-// Call createCellsAndClues() initially
+  // initNavigables();
+}
 createCellsAndClues();
 
 const closeButton = document.querySelector(".close_popup");
@@ -208,36 +246,23 @@ const cluesDivs = document.querySelectorAll("#clues li");
 
 document.addEventListener("click", function (e) {
   if (e.target.classList.contains("hint-button")) {
-    isPopupOpen = true;
-    // e.preventDefault();
-
-    //get clue number and direction
-    const clueNum = parseInt(e.target.getAttribute("data-clue")) - 1;
-    const clueDir = e.target.getAttribute("data-dir");
-
-    const array = clueDir === "across" ? across : down;
-    //get the hint from correct array for the question
-    const hintEntry = array[clueNum];
-
-    //ensures we dont get any of the emtpy arrays 
-    if (hintEntry && hintEntry.length > 0) {
-      //set hint to correct array/index
-      const hintText = hintEntry[4];
-
-      // Show popup and insert text
-      const popup = document.querySelector(".popup");
-      const hintTextElement = document.getElementById("popup_hint_text");
-
-      hintTextElement.textContent = hintText;
-      popup.classList.remove("hide");
-
-      document.querySelector('.close_popup').setAttribute("tabindex", 0)
-      document.querySelector('#popup_hint_text').setAttribute("tabindex", 0)
-
-    }
-
+    openHintWindow(e)
   }
+});
 
+document.addEventListener("keydown", function (e) {
+  // Only trigger on Enter key when focused on a hint button
+  if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("hint-button")) {
+    e.preventDefault(); // prevent default scrolling for Space
+    openHintWindow(e);
+  }
+});
+
+document.addEventListener('keydown', function (e) {
+  closePopup(e)
+});
+
+document.addEventListener('click', function (e) {
   // Handle close button
   if (e.target.closest(".close_popup")) {
     const popup = document.querySelector(".popup");
@@ -246,17 +271,60 @@ document.addEventListener("click", function (e) {
   }
 });
 
+
+function openHintWindow(e) {
+  isPopupOpen = true;
+  // e.preventDefault();
+
+  //get clue number and direction
+  const clueNum = parseInt(e.target.getAttribute("data-clue")) - 1;
+  const clueDir = e.target.getAttribute("data-dir");
+
+  const array = clueDir === "across" ? across : down;
+  //get the hint from correct array for the question
+  const hintEntry = array[clueNum];
+
+  //ensures we dont get any of the emtpy arrays 
+  if (hintEntry && hintEntry.length > 0) {
+    //set hint to correct array/index
+    const hintText = hintEntry[4];
+
+    // Show popup and insert text
+    const popup = document.querySelector(".popup");
+    const hintTextElement = document.getElementById("popup_hint_text");
+
+    hintTextElement.textContent = hintText;
+    popup.classList.remove("hide");
+
+    document.querySelector('.close_popup').setAttribute("tabindex", 0)
+    document.querySelector('#popup_hint_text').setAttribute("tabindex", 0)
+
+  }
+}
+
+function closePopup(e) {
+  if (!isPopupOpen) return;
+
+  const focusable = [document.querySelector('.close_popup'), document.querySelector('#popup_hint_text')];
+  const index = focusable.indexOf(document.activeElement);
+
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    let nextIndex = e.shiftKey ? index - 1 : index + 1;
+    if (nextIndex < 0) nextIndex = focusable.length - 1;
+    if (nextIndex >= focusable.length) nextIndex = 0;
+    focusable[nextIndex].focus();
+  }
+}
+
 document.addEventListener("keydown", function (e) {
   // Check if key is Enter or Space
   if ((e.key === "Enter" || e.key === " ") && document.activeElement.classList.contains("close_popup")) {
-
     const popup = document.querySelector(".popup");
     popup.classList.add("hide");
     isPopupOpen = false;
   }
 });
-
-console.log(isPopupOpen);
 
 // Create the Check Answer button
 const checkAnswerButton = document.createElement("button");
@@ -351,14 +419,29 @@ function checkAnswer() {
         }
 
         // Get corresponding clue element
-        let clueLi = document.querySelector(`li[data-clue="${i + 1}"][data-dir="${currentName}"]`);
+        let clueLi = document.querySelector(`div[data-clue="${i + 1}"][data-dir="${currentName}"] p`);
         const clueKey = `${currentName} ${i + 1}`;
         const indexInCorrect = correctAnswers.indexOf(clueKey);
+       let thisIcon = clueLi.closest('.clue').querySelector('.correctness_icon');
+            let thisHintBtn = clueLi.closest('.list_and_clue').querySelector('.hint-button');
 
         if (isIncomplete) {
           // Incomplete: reset clue text without icon or hint
           if (clueLi) {
-            clueLi.innerHTML = `${i + 1}. ${currentClue} (${correctWord.length}) <span class="correctness_icon"></span>`;
+            // clueLi.innerHTML = `${i + 1}. ${currentClue} (${correctWord.length}) <span class="correctness_icon"></span>`;
+            //  clueLi.textContent =  `${i+ 1}. ${currentName[i]}`
+            // let thisIcon = clueLi.closest('.clue').querySelector('.correctness_icon');
+            // let thisHintBtn = clueLi.closest('.list_and_clue').querySelector('.hint-button');
+            // if(thisHintBtn.classList.contains("disabled")){
+            //              thisHintBtn.classList.remove("disabled");
+ 
+            // }
+
+            clueLi.textContent = `${i + 1}. ${currentClue} (${correctWord.length})`;
+            // let thisIcon = clueLi.closest('.list_and_clue').querySelector('.correctness_icon');
+            if (thisIcon.classList.contains('correct_tick') || thisIcon.classList.contains('incorrect_cross')) {
+              thisIcon.classList.remove('correct_tick', 'incorrect_cross');
+            }
           }
           // Remove from correct answers if previously added
           if (indexInCorrect !== -1) {
@@ -368,7 +451,18 @@ function checkAnswer() {
         } else if (isCorrect) {
           // Correct answer: show answer and tick
           if (clueLi) {
-            clueLi.innerHTML = `${i + 1}. ${currentClue.replace("_________________", correctWord.toUpperCase())} (${correctWord.length}) <span class="correctness_icon correct_tick"></span>`;
+            clueLi.textContent = `${i + 1}. ${currentClue.replace("_________________", correctWord.toUpperCase())} (${correctWord.length})`;
+            //  let thisIcon = clueLi.parentElement.nextElementSibling;
+            // let thisIcon = clueLi.closest('.clue').querySelector('.correctness_icon');
+            if (thisIcon.classList.contains('incorrect_cross')) {
+              thisIcon.classList.remove('incorrect_cross');
+            }
+            thisIcon.classList.add('correct_tick');
+                // let thisHintBtn = clueLi.closest('.list_and_clue').querySelector('.hint-button');
+            if(!thisHintBtn.classList.contains("disabled")){
+                         thisHintBtn.classList.add("disabled");
+ 
+            }
           }
 
           for (let j = 0; j < correctWord.length; j++) {
@@ -380,6 +474,7 @@ function checkAnswer() {
                 currentClue.style.pointerEvents = "none";
                 // currentClue.setAttribute("tabindex", "-1");
                 currentClue.classList.add("locked-cell");
+                currentClue.setAttribute("tabindex", -1);
                 currentClue.classList.remove("current");
               }
               currentCell.classList.add("locked-cell");
@@ -395,7 +490,11 @@ function checkAnswer() {
         } else {
           // Incorrect answer: show cross and hint button
           if (clueLi) {
-            clueLi.innerHTML = `${i + 1}. ${currentClue} (${correctWord.length}) <span class="correctness_icon incorrect_cross"></span><button class="hint-button" tabindex="0" data-clue="${i + 1}" data-dir="${currentName}">HINT</button>`;
+            clueLi.innerHTML = `${i + 1}. ${currentClue} (${correctWord.length})`;
+            // let thisIcon = clueLi.closest('.clue').querySelector('.correctness_icon');
+            // let thisHintBtn = clueLi.closest('.list_and_clue').querySelector('.hint-button');
+            thisIcon.classList.add('incorrect_cross');
+            thisHintBtn.classList.remove("disabled");
           }
           // Remove from correct answers if previously added
           if (indexInCorrect !== -1) {
@@ -417,8 +516,10 @@ function checkAnswer() {
       //   parent.parent.quizScores(score, scoreToPass); //IZ
     }
   }
+  // initNavigables();
 }
 
+// }
 //FOLLOWING IS LOGIC FROM STARTING POINT/EXAMPLE (IZ)
 
 // Create an array of input elements and blank cells from the crossword
@@ -427,9 +528,15 @@ let index = Array.from(
 );
 
 // Create an array of clue elements
-let clues = Array.from(document.querySelectorAll("li[data-clue]"));
-let check = document.querySelector("#checkAnswer");
-let checkAndClues = [...clues, check];
+let clues = Array.from(document.querySelectorAll("div[data-clue]"));
+// let hintBtns = Array.from(document.querySelectorAll(".hint-button"));
+// let check = document.querySelector("#checkAnswer");
+// let checkAndClues = [...clues, check, ...hintBtns];
+// console.log(checkAndClues)
+// Select all in one query, in DOM order
+let checkAndClues = Array.from(
+  document.querySelectorAll("div[data-clue], #checkAnswer, .hint-button")
+);
 
 // State object to track the current state of the crossword
 let state = {
@@ -522,7 +629,7 @@ function editClue() {
   }
   // // Highlight the current clue in the clues list
   const clueElement = document.querySelector(
-    'li[data-clue="' + c + '"][data-dir="' + d + '"]'
+    'div[data-clue="' + c + '"][data-dir="' + d + '"]'
   );
   // if (clueElement) 
 
@@ -542,144 +649,119 @@ clues.forEach((clue) => {
 });
 
 // Handle keyboard input for navigation and answering crossword clues
-document.addEventListener(
-  "keydown",
-  (e) => {
-    // if (!isPopupOpen) {
-    e.preventDefault();
-    // }
-    // // Handle non-character keys like Shift, Space, and Enter
-    switch (e.key) {
-      case "Shift":
-      case "Space":
-      case "Enter":
-        return;
-      case "Tab":
+let target;
+let navigables = []
 
-        if (isPopupOpen) {
-          return;
-        }
-        if (document.activeElement) {
-          document.activeElement.blur(); // remove focus from the current element
-        }
-        // Handle Tab for navigating between clues
-        //NEW IZ get reference to the check answer button
-        let checkButton = document.getElementById("checkAnswer");
-        // Get the currently selected clue element based on state
-        let cli = document.querySelector(
-          'li[data-clue="' + state.clue + '"][data-dir="' + state.dir + '"]'
-        );
+document.addEventListener("keydown", (e) => {
+  e.preventDefault();
 
-        //NEW IZ If no clue, then target is check answer button
-        let target = cli || checkButton;
-        //NEW IZ Find the index of the currently focused item (clue or button)
-        let c = checkAndClues.indexOf(target);
+  switch (e.key) {
+    case "Shift":
+    case "Space":
+    case "Enter":
+      return;
 
-        if (e.shiftKey === true) {
-          nc = c - 1;
-        } else {
-          nc = c + 1;
-        }
-
-        //NEW IZ Wrap around to the beginning if we've gone past the last item
-        if (nc === checkAndClues.length) {
-          nc = 0;
-        }
-
-        // If next index is the check button (last item), focus it
-        if (nc === checkAndClues.length - 1) {
-          checkAnswerButton.focus();
-        } else {
-          checkAnswerButton.blur();
-        }
-
-        editClue.bind(checkAndClues[nc])();
-        let clueTarget = checkAndClues[nc];
-
-        // Skip if target has locked-cell
-        while (clueTarget.classList.contains("locked-cell")) {
-          if (e.shiftKey) {
-            nc--;
-            if (nc < 0) nc = checkAndClues.length - 1;
-          } else {
-            nc++;
-            if (nc >= checkAndClues.length) nc = 0;
-          }
-          clueTarget = checkAndClues[nc];
-        }
-
-        editClue.bind(clueTarget)();
-
-        return;
-        break;
-      case "Backspace":
-        if (!state.clue) return;
-        state.answers[state.clue + "-" + state.dir] = state.answers[
-          state.clue + "-" + state.dir
-        ].substr(0, state.answers[state.clue + "-" + state.dir].length - 1);
-        break;
-      default:
-        if (!state.clue) return;
-        if (e.key.length > 1) return;
-        if (state.answers[state.clue + "-" + state.dir].length < state.length) {
-          state.answers[state.clue + "-" + state.dir] += e.key;
-        }
-        break;
-    }
-    // Move the cursor based on the direction and current input
-    if (state.dir === "across") {
-      index[state.index + state.cursor].classList.remove("cursor");
-    } else {
-      index[state.index + state.cursor * crossWordWidth].classList.remove(
-        "cursor"
+    case "Tab": {
+      if (isPopupOpen) return;
+      navigables = Array.from(
+        document.querySelectorAll("div[data-clue], .hint-button:not(.disabled), #checkAnswer")
       );
-    }
-    state.cursor = state.answers[state.clue + "-" + state.dir].length;
-    if (state.cursor < 0) {
-      state.cursor = 0;
-    } else if (state.cursor > state.length - 1) {
-      state.cursor = state.length - 1;
-    }
-    if (state.dir === "across") {
-      index[state.index + state.cursor].classList.add("cursor");
-    } else {
-      index[state.index + state.cursor * crossWordWidth].classList.add(
-        "cursor"
-      );
+      console.log(navigables)
+
+      console.log(navigables)
+      let current = document.activeElement;
+
+      let c = navigables.indexOf(current);
+      let nc = e.shiftKey ? c - 1 : c + 1;
+
+      if (nc < 0) nc = navigables.length - 1;
+      if (nc >= navigables.length) nc = 0;
+
+      target = navigables[nc];
+      target.focus();
+
+
+      // Trigger your editClue logic
+      editClue.bind(navigables[nc])();
+
+      let clueTarget = navigables[nc];
+
+      // Skip if target has locked-cell
+      while (clueTarget.classList.contains("locked-cell")) {
+        if (e.shiftKey) {
+          nc--;
+          if (nc < 0) nc = navigables.length - 1;
+        } else {
+          nc++;
+          if (nc >= navigables.length) nc = 0;
+        }
+        clueTarget = navigables[nc];
+      }
+
+      editClue.bind(clueTarget)();
+
+      return;
     }
 
-    // Update the crossword cells with the current answer
-    // for (let x = 0; x < state.length; x++) {
-    //   let answerChar = state.answers[state.clue + "-" + state.dir][x] || ""; // Default to empty string
-    //   if (state.dir === "across") {
-    //     index[state.index + x].value = answerChar;
-    //   } else {
-    //     index[state.index + x * crossWordWidth].value = answerChar;
-    //   }
-    // }
-    for (let x = 0; x < state.length; x++) {
-      let answerChar = state.answers[state.clue + "-" + state.dir][x] || ""; // Default to empty string
-      let cell;
-      if (state.dir === "across") {
-        cell = index[state.index + x];
-      } else {
-        cell = index[state.index + x * crossWordWidth];
-      }
-      // Only update if the cell is not locked
-      if (!cell.classList.contains("locked-cell")) {
-        cell.value = answerChar;
-      }
+    case "Backspace": {
+      if (!state.clue) return;
+      let key = state.clue + "-" + state.dir;
+      state.answers[key] = state.answers[key].slice(0, -1);
+      break;
     }
 
-  },
-  false
-);
+    default: {
+      if (!state.clue) return;
+      if (e.key.length > 1) return;
+
+      let key = state.clue + "-" + state.dir;
+      if (state.answers[key].length < state.length) {
+        state.answers[key] += e.key;
+      }
+      break;
+    }
+  }
+
+  //Ensures if hint button is whats focused, and user starts typing, console error doesnt fire 
+  if (e.target.classList.contains("hint-button")) {
+    return;
+  }
+
+  // === Move cursor highlight ===
+  if (state.dir === "across") {
+    index[state.index + state.cursor].classList.remove("cursor");
+  } else {
+    index[state.index + state.cursor * crossWordWidth].classList.remove("cursor");
+  }
+
+  state.cursor = state.answers[state.clue + "-" + state.dir].length;
+  state.cursor = Math.max(0, Math.min(state.cursor, state.length - 1));
+
+  if (state.dir === "across") {
+    index[state.index + state.cursor].classList.add("cursor");
+  } else {
+    index[state.index + state.cursor * crossWordWidth].classList.add("cursor");
+  }
+
+  // === Update visible letters ===
+  for (let x = 0; x < state.length; x++) {
+    let answerChar = state.answers[state.clue + "-" + state.dir][x] || "";
+    let cell =
+      state.dir === "across"
+        ? index[state.index + x]
+        : index[state.index + x * crossWordWidth];
+
+    if (!cell.classList.contains("locked-cell")) {
+      cell.value = answerChar;
+    }
+  }
+}, false);
 
 // Function to select a clue and edit it
 
 function selectClue() {
   let c = parseInt(this.getAttribute("data-clue"));
-  let li = Array.from(document.querySelectorAll('li[data-clue="' + c + '"]'));
+  let li = Array.from(document.querySelectorAll('div[data-clue="' + c + '"]'));
   if (li.length === 1) {
     editClue.bind(li[0])();
   } else {
@@ -697,17 +779,4 @@ Array.from(document.querySelectorAll("input[data-clue]")).map((el) => {
   el.addEventListener("click", selectClue);
 });
 
-document.addEventListener('keydown', function (e) {
-  if (!isPopupOpen) return;
 
-  const focusable = [document.querySelector('.close_popup'), document.querySelector('#popup_hint_text')];
-  const index = focusable.indexOf(document.activeElement);
-
-  if (e.key === 'Tab') {
-    e.preventDefault();
-    let nextIndex = e.shiftKey ? index - 1 : index + 1;
-    if (nextIndex < 0) nextIndex = focusable.length - 1;
-    if (nextIndex >= focusable.length) nextIndex = 0;
-    focusable[nextIndex].focus();
-  }
-});
